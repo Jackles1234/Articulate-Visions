@@ -1,4 +1,5 @@
 import torch 
+import matplotlib.pyplot as plt
 
 # helper function; removes the predicted noise (but adds some noise back in to avoid collapse)
 def denoise_add_noise(x, t, pred_noise, z=None):
@@ -33,13 +34,13 @@ def sample_ddpm_context(n_sample, context, save_rate=20):
     intermediate = np.stack(intermediate)
     return samples, intermediate
 
-def show_sample():
-    # visualize samples with randomly selected context
-    plt.clf()
-    ctx = F.one_hot(torch.randint(0, 5, (32,)), 5).to(device=device).float()
-    samples, intermediate = sample_ddpm_context(32, ctx)
-    animation_ddpm_context = plot_sample(intermediate,32,4,save_dir, "ani_run", None, save=False)
-    HTML(animation_ddpm_context.to_jshtml())
+
+# visualize samples with randomly selected context
+plt.clf()
+ctx = F.one_hot(torch.randint(0, 5, (32,)), 5).to(device=device).float()
+samples, intermediate = sample_ddpm_context(32, ctx)
+animation_ddpm_context = plot_sample(intermediate,32,4,save_dir, "ani_run", None, save=False)
+HTML(animation_ddpm_context.to_jshtml())
 
 def show_images(imgs, nrow=2):
     _, axs = plt.subplots(nrow, imgs.shape[0] // nrow, figsize=(4,2 ))
@@ -51,32 +52,32 @@ def show_images(imgs, nrow=2):
         ax.imshow(img)
     plt.show()
 
-def test_one():
-    # user defined context
-    ctx = torch.tensor([
-        # hero, non-hero, food, spell, side-facing
-        [1,0,0,0,0],  
-        [1,0,0,0,0],    
-        [0,0,0,0,1],
-        [0,0,0,0,1],    
-        [0,1,0,0,0],
-        [0,1,0,0,0],
-        [0,0,1,0,0],
-        [0,0,1,0,0],
-    ]).float().to(device)
-    samples, _ = sample_ddpm_context(ctx.shape[0], ctx)
-    show_images(samples)
 
-def test_two():
-    # mix of defined context
-    ctx = torch.tensor([
-        # hero, non-hero, food, spell, side-facing
-        [1,0,0,0,0],      #human
-        [1,0,0.6,0,0],    
-        [0,0,0.6,0.4,0],  
-        [1,0,0,0,1],  
-        [1,1,0,0,0],
-        [1,0,0,1,0]
-    ]).float().to(device)
-    samples, _ = sample_ddpm_context(ctx.shape[0], ctx)
-    show_images(samples)
+# user defined context
+ctx = torch.tensor([
+    # hero, non-hero, food, spell, side-facing
+    [1,0,0,0,0],  
+    [1,0,0,0,0],    
+    [0,0,0,0,1],
+    [0,0,0,0,1],    
+    [0,1,0,0,0],
+    [0,1,0,0,0],
+    [0,0,1,0,0],
+    [0,0,1,0,0],
+]).float().to(device)
+samples, _ = sample_ddpm_context(ctx.shape[0], ctx)
+show_images(samples)
+
+
+# mix of defined context
+ctx = torch.tensor([
+    # hero, non-hero, food, spell, side-facing
+    [1,0,0,0,0],      #human
+    [1,0,0.6,0,0],    
+    [0,0,0.6,0.4,0],  
+    [1,0,0,0,1],  
+    [1,1,0,0,0],
+    [1,0,0,1,0]
+]).float().to(device)
+samples, _ = sample_ddpm_context(ctx.shape[0], ctx)
+show_images(samples)

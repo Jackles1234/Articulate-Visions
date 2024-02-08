@@ -1,8 +1,10 @@
-
 from models import ContextUnet
+import torch
+import matplotlib.pyplot as plt
+from visualize_utils import sample_ddpm_context, show_images
 
+def main():
 
-def model_init():
     # hyperparameters
 
     # diffusion hyperparameters
@@ -32,17 +34,50 @@ def model_init():
     nn_model = ContextUnet(in_channels=3, n_feat=n_feat, n_cfeat=n_cfeat, height=height).to(device)
     # re setup optimizer
     optim = torch.optim.Adam(nn_model.parameters(), lr=lrate)
-    return nn_model, optim
-
-
-
-def main():
-    nn_model, optim = model_init()
 
     # load in pretrain model weights and set to eval mode
     nn_model.load_state_dict(torch.load(f"{save_dir}/context_model_trained.pth", map_location=device))
     nn_model.eval() 
     print("Loaded in Context Model")
+
+    #call sample_ddpm_context file, 
+    # visualize samples with randomly selected context
+    plt.clf()
+    ctx = F.one_hot(torch.randint(0, 5, (32,)), 5).to(device=device).float()
+    samples, intermediate = sample_ddpm_context(32, ctx)
+    animation_ddpm_context = plot_sample(intermediate,32,4,save_dir, "ani_run", None, save=False)
+    HTML(animation_ddpm_context.to_jshtml())
+
+
+    # user defined context
+    ctx = torch.tensor([
+        # hero, non-hero, food, spell, side-facing
+        [1,0,0,0,0],  
+        [1,0,0,0,0],    
+        [0,0,0,0,1],
+        [0,0,0,0,1],    
+        [0,1,0,0,0],
+        [0,1,0,0,0],
+        [0,0,1,0,0],
+        [0,0,1,0,0],
+    ]).float().to(device)
+    samples, _ = sample_ddpm_context(ctx.shape[0], ctx)
+    show_images(samples)
+
+
+    # mix of defined context
+    ctx = torch.tensor([
+        # hero, non-hero, food, spell, side-facing
+        [1,0,0,0,0],      #human
+        [1,0,0.6,0,0],    
+        [0,0,0.6,0.4,0],  
+        [1,0,0,0,1],  
+        [1,1,0,0,0],
+        [1,0,0,1,0]
+    ]).float().to(device)
+    samples, _ = sample_ddpm_context(ctx.shape[0], ctx)
+    show_images(samples)
+
 
 if __name__ == "__main__":
     main()

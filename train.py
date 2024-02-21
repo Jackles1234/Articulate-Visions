@@ -9,10 +9,15 @@ from train_utils import perturb_input
 # training with context code
 # set into train mode
 
+# Set Datasets
+images_path = "data/datafiles/diffusion_pixelart_db_img_20x20.npy"
+labels_path = "data/datafiles/diffusion_pixelart_db_labels_20x20.npy"
+
+
 def train_model():
     nn_model.train()
 
-    dataset = CustomDataset("data/sprites_1788_16x16.npy", "data/sprite_labels_nc_1788_16x16.npy", transform, null_context=False)
+    dataset = CustomDataset(images_path, labels_path, transform, null_context=False)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
     optim = torch.optim.Adam(nn_model.parameters(), lr=lrate)
 
@@ -20,10 +25,10 @@ def train_model():
         print(f'epoch {ep}')
 
         # linearly decay learning rate
-        optim.param_groups[0]['lr'] = lrate*(1-ep/n_epoch)
+        optim.param_groups[0]['lr'] = lrate * (1 - ep / n_epoch)
 
-        pbar = tqdm(dataloader, mininterval=2 )
-        for x, c in pbar:   # x: images  c: context
+        pbar = tqdm(dataloader, mininterval=2)
+        for x, c in pbar:  # x: images  c: context
             optim.zero_grad()
             x = x.to(device)
             c = c.to(x)
@@ -47,11 +52,12 @@ def train_model():
             optim.step()
 
         # save model periodically
-        if ep%4==0 or ep == int(n_epoch-1):
+        if ep % 4 == 0 or ep == int(n_epoch - 1):
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
             torch.save(nn_model.state_dict(), save_dir + f"context_model_{ep}.pth")
             print('saved model at ' + save_dir + f"context_model_{ep}.pth")
+
 
 if __name__ == "__main__":
     train_model()

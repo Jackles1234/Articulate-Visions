@@ -10,6 +10,14 @@ import PIL.Image
 import datasets
 from datasets import load_dataset
 from datasets.utils.file_utils import get_datasets_user_agent
+from datasets import load_dataset
+from PIL import Image
+import numpy as np
+
+from data.data_utils import imgs_to_npy_file, labels_to_npy_file
+from models import BagOfWordsTextEncoder
+
+text_encoder = BagOfWordsTextEncoder()
 
 
 def use_red_caps_dataset():
@@ -105,3 +113,28 @@ def ms_coco_db():
     """
     pass
 
+
+def diffusiondb_pixelart():
+    """
+    Dataaset: https://huggingface.co/datasets/jainr3/diffusiondb-pixelart
+    :return:
+    """
+    img_size = (20, 20)
+    dataset = load_dataset("jainr3/diffusiondb-pixelart", trust_remote_code=True)['train']
+    images = dataset['image']
+    labels = dataset['text']
+    text_encoder.fit(labels)
+    images = [np.array(image.resize(img_size)) for image in images]
+    imgs_to_npy_file(images, "diffusion_pixelart_db_img", img_size)
+    labels_to_npy_file(text_encoder.encode(labels), "diffusion_pixelart_db_labels", img_size)
+
+
+def diffusiondb_pixelart_label_encoder():
+    dataset = load_dataset("jainr3/diffusiondb-pixelart")['train']
+    labels = dataset['text']
+    text_encoder.fit(labels)
+    return text_encoder
+
+
+if __name__ == '__main__':
+    diffusiondb_pixelart()

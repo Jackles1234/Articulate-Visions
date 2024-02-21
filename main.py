@@ -17,12 +17,12 @@ beta2 = 0.02
 device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
 n_feat = 64 # 64 hidden dimension feature
 n_cfeat = 5 # context vector is of size 5
-height = 16 # 16x16 image
+height = 200 # 16x16 image
 save_dir = './weights/'
 
 # training hyperparameters
-batch_size = 100
-n_epoch = 32
+batch_size = 5
+n_epoch = 2
 lrate=1e-3
 
 # construct DDPM noise schedule
@@ -37,9 +37,9 @@ nn_model = ContextUnet(in_channels=3, n_feat=n_feat, n_cfeat=n_cfeat, height=hei
 optim = torch.optim.Adam(nn_model.parameters(), lr=lrate)
 
 # load in pretrain model weights and set to eval mode
-nn_model.load_state_dict(torch.load(f"{save_dir}/context_model_trained.pth", map_location=device))
-nn_model.eval() 
-print("Loaded in Context Model")
+# nn_model.load_state_dict(torch.load(f"{save_dir}/context_model_trained.pth", map_location=device))
+# nn_model.eval()
+# print("Loaded in Context Model")
 
 # helper function; removes the predicted noise (but adds some noise back in to avoid collapse)
 def denoise_add_noise(x, t, pred_noise, z=None):

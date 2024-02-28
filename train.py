@@ -10,9 +10,10 @@ from train_utils import perturb_input
 # set into train mode
 
 # Set Datasets
-images_path = "data/datafiles/diffusion_pixelart_db_img_20x20.npy"
-labels_path = "data/datafiles/diffusion_pixelart_db_labels_20x20.npy"
-
+images_path = "data/datafiles/diffusion_pixelart_db_img_32x32.npy"
+labels_path = "data/datafiles/diffusion_pixelart_db_labels_32x32.npy"
+# images_path = "data/datafiles/sprites_1788_16x16.npy"
+# labels_path = "data/datafiles/sprite_labels_nc_1788_16x16.npy"
 
 def train_model():
     nn_model.train()
@@ -22,7 +23,7 @@ def train_model():
     optim = torch.optim.Adam(nn_model.parameters(), lr=lrate)
 
     for ep in range(n_epoch):
-        print(f'epoch {ep}')
+        print(f'\nepoch {ep}\n')
 
         # linearly decay learning rate
         optim.param_groups[0]['lr'] = lrate * (1 - ep / n_epoch)

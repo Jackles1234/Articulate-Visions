@@ -1,5 +1,11 @@
+import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.pipeline import Pipeline
+
+import numpy as np
 
 from diffusion_utilities import *
+
 
 class ContextUnet(nn.Module):
     def __init__(self, in_channels, n_feat=256, n_cfeat=10, height=28):  # cfeat - context features
@@ -29,7 +35,8 @@ class ContextUnet(nn.Module):
 
         # Initialize the up-sampling path of the U-Net with three levels
         self.up0 = nn.Sequential(
-            nn.ConvTranspose2d(2 * n_feat, 2 * n_feat, self.h // 4, self.h // 4),  # up-sample
+            # nn.ConvTranspose2d(2 * n_feat, 2 * n_feat, self.h // 8, self.h // 8),  # up-sample
+            nn.ConvTranspose2d(2 * n_feat, 2 * n_feat, self.h // 8, self.h // 8),  # up-sample
             nn.GroupNorm(8, 2 * n_feat),  # normalize
             nn.ReLU(),
         )
@@ -71,7 +78,6 @@ class ContextUnet(nn.Module):
         temb1 = self.timeembed1(t).view(-1, self.n_feat * 2, 1, 1)
         cemb2 = self.contextembed2(c).view(-1, self.n_feat, 1, 1)
         temb2 = self.timeembed2(t).view(-1, self.n_feat, 1, 1)
-        # print(f"uunet forward: cemb1 {cemb1.shape}. temb1 {temb1.shape}, cemb2 {cemb2.shape}. temb2 {temb2.shape}")
 
         up1 = self.up0(hiddenvec)
         up2 = self.up1(cemb1 * up1 + temb1, down2)  # add and multiply embeddings
@@ -110,7 +116,7 @@ class BagOfWordsTextEncoder():
                 # Substitute each row by the sentence BoW.
                 encoded[row] = self._transform_sentence(sentence.split())
         else:
-            raise TypeError("You must pass either a string or list of strings for transformation.")
+            raise TypeError(f"You must pass either a string or list of strings for transformation. type is {type(string)}")
         return encoded
 
     def _transform_sentence(self, list_of_words):
@@ -122,3 +128,14 @@ class BagOfWordsTextEncoder():
         return transformed
 
 
+class TF_IDF:
+    def __init__(self):
+        self.tfidfvectorizer = TfidfVectorizer(analyzer='word', stop_words='english')
+
+    def fit(self, text_array):
+        self.tfidf_wm = self.tfidfvectorizer.fit_transform(text_array)
+        self.tfidf_tokens = self.tfidfvectorizer.get_feature_names()
+
+    def encode(self, text):
+        df_tfidfvect = pd.DataFrame(data=self.tfidf_wm.toarray(), index=['Doc1', 'Doc2'], columns=self.tfidf_tokens)
+        return df_tfidfvect.to_numpy()

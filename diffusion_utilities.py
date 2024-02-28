@@ -79,7 +79,7 @@ class ResidualConvBlock(nn.Module):
 class UnetUp(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(UnetUp, self).__init__()
-        
+
         # Create a list of layers for the upsampling block
         # The block consists of a ConvTranspose2d layer for upsampling, followed by two ResidualConvBlock layers
         layers = [
@@ -94,7 +94,7 @@ class UnetUp(nn.Module):
     def forward(self, x, skip):
         # Concatenate the input tensor x with the skip connection tensor along the channel dimension
         x = torch.cat((x, skip), 1)
-        
+
         # Pass the concatenated tensor through the sequential model and return the output
         x = self.model(x)
         return x
@@ -166,19 +166,19 @@ def norm_torch(x_all):
     nstore = (x - xmin)/(xmax - xmin)
     return torch.from_numpy(nstore)
 
-def gen_tst_context(n_cfeat):
-    """
-    Generate test context vectors
-    """
-    vec = torch.tensor([
-    [1,0,0,0,0], [0,1,0,0,0], [0,0,1,0,0], [0,0,0,1,0], [0,0,0,0,1],  [0,0,0,0,0],      # human, non-human, food, spell, side-facing
-    [1,0,0,0,0], [0,1,0,0,0], [0,0,1,0,0], [0,0,0,1,0], [0,0,0,0,1],  [0,0,0,0,0],      # human, non-human, food, spell, side-facing
-    [1,0,0,0,0], [0,1,0,0,0], [0,0,1,0,0], [0,0,0,1,0], [0,0,0,0,1],  [0,0,0,0,0],      # human, non-human, food, spell, side-facing
-    [1,0,0,0,0], [0,1,0,0,0], [0,0,1,0,0], [0,0,0,1,0], [0,0,0,0,1],  [0,0,0,0,0],      # human, non-human, food, spell, side-facing
-    [1,0,0,0,0], [0,1,0,0,0], [0,0,1,0,0], [0,0,0,1,0], [0,0,0,0,1],  [0,0,0,0,0],      # human, non-human, food, spell, side-facing
-    [1,0,0,0,0], [0,1,0,0,0], [0,0,1,0,0], [0,0,0,1,0], [0,0,0,0,1],  [0,0,0,0,0]]      # human, non-human, food, spell, side-facing
-    )
-    return len(vec), vec
+# def gen_tst_context(n_cfeat):
+#     """
+#     Generate test context vectors
+#     """
+#     vec = torch.tensor([
+#     [1,0,0,0,0], [0,1,0,0,0], [0,0,1,0,0], [0,0,0,1,0], [0,0,0,0,1],  [0,0,0,0,0],      # human, non-human, food, spell, side-facing
+#     [1,0,0,0,0], [0,1,0,0,0], [0,0,1,0,0], [0,0,0,1,0], [0,0,0,0,1],  [0,0,0,0,0],      # human, non-human, food, spell, side-facing
+#     [1,0,0,0,0], [0,1,0,0,0], [0,0,1,0,0], [0,0,0,1,0], [0,0,0,0,1],  [0,0,0,0,0],      # human, non-human, food, spell, side-facing
+#     [1,0,0,0,0], [0,1,0,0,0], [0,0,1,0,0], [0,0,0,1,0], [0,0,0,0,1],  [0,0,0,0,0],      # human, non-human, food, spell, side-facing
+#     [1,0,0,0,0], [0,1,0,0,0], [0,0,1,0,0], [0,0,0,1,0], [0,0,0,0,1],  [0,0,0,0,0],      # human, non-human, food, spell, side-facing
+#     [1,0,0,0,0], [0,1,0,0,0], [0,0,1,0,0], [0,0,0,1,0], [0,0,0,0,1],  [0,0,0,0,0]]      # human, non-human, food, spell, side-facing
+#     )
+#     return len(vec), vec
 
 def plot_grid(x,n_sample,n_rows,save_dir,w):
     # x:(n_sample, 3, h, w)

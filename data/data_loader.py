@@ -119,12 +119,12 @@ def diffusiondb_pixelart():
     Dataaset: https://huggingface.co/datasets/jainr3/diffusiondb-pixelart
     :return:
     """
-    img_size = (20, 20)
+    img_size = (32, 32)
     dataset = load_dataset("jainr3/diffusiondb-pixelart", trust_remote_code=True)['train']
     images = dataset['image']
     labels = dataset['text']
     text_encoder.fit(labels)
-    images = [np.array(image.resize(img_size)) for image in images]
+    images = [np.array(image.convert("RGB").resize(img_size)) for image in images]
     imgs_to_npy_file(images, "diffusion_pixelart_db_img", img_size)
     labels_to_npy_file(text_encoder.encode(labels), "diffusion_pixelart_db_labels", img_size)
 

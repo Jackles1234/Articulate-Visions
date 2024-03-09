@@ -16,7 +16,10 @@ class ContextUnet(nn.Module):
         self.n_feat = n_feat
         self.n_cfeat = n_cfeat
         self.h = height  # assume h == w. must be divisible by 4, so 28,24,20,16...
-
+        if self.h == 32:
+            self.kernel = self.h // 8
+        elif self.h == 64:
+            self.kernel = self.h // 16
         # Initialize the initial convolutional layer
         self.init_conv = ResidualConvBlock(in_channels, n_feat, is_res=True)
 
@@ -32,11 +35,9 @@ class ContextUnet(nn.Module):
         self.timeembed2 = EmbedFC(1, 1 * n_feat)
         self.contextembed1 = EmbedFC(n_cfeat, 2 * n_feat)
         self.contextembed2 = EmbedFC(n_cfeat, 1 * n_feat)
-
         # Initialize the up-sampling path of the U-Net with three levels
         self.up0 = nn.Sequential(
-            # nn.ConvTranspose2d(2 * n_feat, 2 * n_feat, self.h // 8, self.h // 8),  # up-sample
-            nn.ConvTranspose2d(2 * n_feat, 2 * n_feat, self.h // 8, self.h // 8),  # up-sample
+            nn.ConvTranspose2d(2 * n_feat, 2 * n_feat, self.kernel, self.kernel),  # up-sample
             nn.GroupNorm(8, 2 * n_feat),  # normalize
             nn.ReLU(),
         )
@@ -85,57 +86,3 @@ class ContextUnet(nn.Module):
         out = self.out(torch.cat((up3, x), 1))
         return out
 
-
-class BagOfWordsTextEncoder():
-    def __init__(self):
-        self.total_words = 0
-        self.idx_to_word = {}
-        self.word_to_idx = {}
-        self.all_words = set()
-
-    def fit(self, text_array):
-        for sentence in text_array:
-            words = [word.lower() for word in sentence.split()]
-            for word in words:
-                # Add all words. Since its a set, there won't be duplicates.
-                self.all_words.add(word)
-
-        for idx, word in enumerate(self.all_words):
-            self.word_to_idx[word] = idx
-            self.idx_to_word[idx] = word
-            # Set the vocab size.
-        self.total_words = len(self.all_words)
-
-    def encode(self, text):
-        if type(text) == str:
-            encoded = self._transform_sentence(text.split())
-        elif type(text) == list and type(text[0]) == str:
-            encoded = np.empty((len(text), self.total_words))
-            # Iterate over all sentences - this can be parallelized.
-            for row, sentence in enumerate(text):
-                # Substitute each row by the sentence BoW.
-                encoded[row] = self._transform_sentence(sentence.split())
-        else:
-            raise TypeError(f"You must pass either a string or list of strings for transformation. type is {type(string)}")
-        return encoded
-
-    def _transform_sentence(self, list_of_words):
-        transformed = np.zeros(self.total_words)
-        for word in list_of_words:
-            if word in self.all_words:
-                word_idx = self.word_to_idx[word]
-                transformed[word_idx] += 1
-        return transformed
-
-
-class TF_IDF:
-    def __init__(self):
-        self.tfidfvectorizer = TfidfVectorizer(analyzer='word', stop_words='english')
-
-    def fit(self, text_array):
-        self.tfidf_wm = self.tfidfvectorizer.fit_transform(text_array)
-        self.tfidf_tokens = self.tfidfvectorizer.get_feature_names()
-
-    def encode(self, text):
-        df_tfidfvect = pd.DataFrame(data=self.tfidf_wm.toarray(), index=['Doc1', 'Doc2'], columns=self.tfidf_tokens)
-        return df_tfidfvect.to_numpy()

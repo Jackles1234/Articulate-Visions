@@ -84,7 +84,7 @@ def diffusiondb_pixelart_label_encoder():
 
 
 if __name__ == '__main__':
-    img_size = (64, 64)
+    img_size = (32, 32)
     diffusiondb_pixelart()
     polioclub_diffusiondb()
     # nouns_sprite()

@@ -36,7 +36,8 @@ def train_model(training_context: Context):
             noise = torch.randn_like(x)
             t = torch.randint(1, training_context.timesteps + 1, (x.shape[0],)).to(training_context.device)
 
-            x_pert = training_context.ab_t.sqrt()[t, None, None, None] * x + (1 - training_context.ab_t[t, None, None, None]) * noise
+            x_pert = training_context.ab_t.sqrt()[t, None, None, None] * x + (
+                        1 - training_context.ab_t[t, None, None, None]) * noise
 
             # use network to recover noise
             pred_noise = training_context.nn_model(x_pert, t / training_context.timesteps, c=c)
@@ -104,6 +105,18 @@ def train_all_models():
             print(context, f"{idx}/{len(combination_dicts)}")
 
             train_model(context)
+
+
+def train_one_model():
+    dataset = 'diffusiondb_pixelart'
+    hyperparameters = {
+        'timesteps': 300,
+        'batch_size': 200,
+        'n_feat': 128,
+        'n_epoch': 300
+    }
+    context = generate_context(dataset, hyperparameters)
+    train_model(context)
 
 
 if __name__ == "__main__":

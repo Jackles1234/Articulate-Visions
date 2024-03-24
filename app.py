@@ -1,10 +1,24 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from main import update_variables
 import sys
 from flask_cors import CORS
-
+import os
 app = Flask(__name__)
 CORS(app)
+
+@app.route('/api/images')
+def get_images():
+    image_names = os.listdir('imgs/')
+    images = [{'name': name, 'url': f'/api/images/{name}'} for name in image_names]
+    return jsonify(images)
+
+@app.route('/api/images/<image_name>')
+def get_image(image_name):
+    requested_path = os.path.abspath(os.path.join('imgs/', image_name))
+    if not requested_path.startswith(os.path.abspath('imgs/')):
+        return "Forbidden", 403
+    return send_file(requested_path, mimetype='image/png')
+
 
 @app.route('/api/submit', methods=['GET', 'POST'])
 def submit_data():

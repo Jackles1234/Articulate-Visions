@@ -11,13 +11,26 @@ batch_size = None#100
 n_epoch = None#32
 timesteps = None#500
 
+def remove_images(folder_path):
+    files = os.listdir(folder_path)
+    for file in files:
+        file_path = os.path.join(folder_path, file)
 
-def update_variables(textbox1, textbox2, textbox3):
-    print("Ballin")
+
+def update_variables(textbox1, textbox2, textbox3):    
     global batch_size, n_epoch, timesteps
     batch_size = textbox1
     n_epoch = textbox2
     timesteps = textbox3
+
+    folder_path = 'imgs'
+    if not os.listdir(folder_path):
+        print("Folder is empty.")
+    else:
+        #doesnt work rn will fix later
+        #remove_images(folder_path)
+        pass
+
     run_model()
 # diffusion hyperparameters
 beta1 = 1e-4
@@ -85,15 +98,26 @@ def run_model():
         intermediate = np.stack(intermediate)
         return samples, intermediate
 
+
     def show_images(imgs, nrow=2):
         _, axs = plt.subplots(nrow, imgs.shape[0] // nrow, figsize=(4,2 ))
         axs = axs.flatten()
-        for img, ax in zip(imgs, axs):
+        os.makedirs("imgs", exist_ok=True)
+        for i, img in enumerate(imgs):
             img = (img.permute(1, 2, 0).clip(-1, 1).detach().cpu().numpy() + 1) / 2
-            ax.set_xticks([])
-            ax.set_yticks([])
-            ax.imshow(img)
-        plt.show()
+            img = (img * 255).astype('uint8')
+            img = Image.fromarray(img)
+            img_path = os.path.join("imgs", f'image_{i}.png')
+        img.save(img_path)
+#""" def show_images(imgs, nrow=2):
+#    _, axs = plt.subplots(nrow, imgs.shape[0] // nrow, figsize=(4,2 ))
+#       axs = axs.flatten()
+#        for img, ax in zip(imgs, axs):
+#            img = (img.permute(1, 2, 0).clip(-1, 1).detach().cpu().numpy() + 1) / 2
+#            ax.set_xticks([])
+#            ax.set_yticks([])
+#            ax.imshow(img)
+#        plt.show()"""
 
     #call sample_ddpm_context file, 
     # visualize samples with randomly selected context

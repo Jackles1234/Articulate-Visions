@@ -1,0 +1,2 @@
+Start Flask API: npm run start-backend 
+Start Frontend: npm run dev

@@ -152,7 +152,7 @@ def norm_all(store, n_t, n_s):
     nstore = np.zeros_like(store)
     for t in range(n_t):
         for s in range(n_s):
-            nstore[t,s] = unorm(store[t,s])
+            nstore[t, s] = unorm(store[t, s])
     return nstore
 
 def norm_torch(x_all):

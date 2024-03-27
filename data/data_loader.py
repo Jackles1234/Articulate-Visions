@@ -79,12 +79,14 @@ def diffusiondb_pixelart():
 def diffusiondb_pixelart_label_encoder():
     dataset = load_dataset("jainr3/diffusiondb-pixelart")['train']
     labels = dataset['text']
+    print(labels[0])
     text_encoder.fit(labels)
     return text_encoder
 
 
 if __name__ == '__main__':
     img_size = (32, 32)
-    diffusiondb_pixelart()
-    polioclub_diffusiondb()
+    diffusiondb_pixelart_label_encoder()
+    # diffusiondb_pixelart()
+    # polioclub_diffusiondb()
     # nouns_sprite()

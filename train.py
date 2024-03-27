@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 import data.data_loader as data_loader
 from diffusion_utilities import *
-from main import Context
+from main import Context, generate_context
 from pathlib import Path
 
 
@@ -53,28 +53,10 @@ def train_model(training_context: Context):
             Path(training_context.context_datafile).mkdir(parents=True, exist_ok=True)
 
             torch.save(training_context.nn_model.state_dict(), training_context.context_datafile
-                       + f"{training_context.model_name}_{*training_context.hyperparameters,}.pth")
+                       + f"{training_context.model_name}_{*list(training_context.hyperparameters.values()),}.pth")
 
-            print('saved model at ' + training_context.context_datafile
-                  + f"{training_context.model_name}_{*training_context.hyperparameters,}.pth")
-
-
-def generate_context(dataset, hyperparameters):
-    training_context = Context()
-
-    # Set context features
-    context_encoder = getattr(data_loader, f"{dataset}_label_encoder")
-    training_context.model_name = dataset
-    training_context.n_cfeat = context_encoder().total_words
-    training_context.images_path = (f"data/datafiles/{training_context.model_name}"
-                                    f"_{training_context.height}x{training_context.height}.npy")
-    training_context.labels_path = (f"data/datafiles/{training_context.model_name}_labels_"
-                                    f"{training_context.height}x{training_context.height}.npy")
-
-    # Set hyperparameters
-    training_context.set_hyperparameters(hyperparameters)
-    return training_context
-
+            print('saved model at ' + training_context.context_datafile + "/"
+                  + f"{training_context.model_name}_{*list(training_context.hyperparameters.values()),}.pth")
 
 def train_all_models():
     datasets = ['diffusiondb_pixelart', 'polioclub']
@@ -110,14 +92,16 @@ def train_all_models():
 def train_one_model():
     dataset = 'diffusiondb_pixelart'
     hyperparameters = {
-        'timesteps': 300,
+        # 'timesteps': 300,
         'batch_size': 200,
-        'n_feat': 128,
-        'n_epoch': 300
+        'n_feat': 64,
+        'n_epoch': 50
     }
     context = generate_context(dataset, hyperparameters)
+    context.set_hyperparameters(hyperparameters)
+    print(context)
     train_model(context)
 
 
 if __name__ == "__main__":
-    train_all_models()
+    train_one_model()

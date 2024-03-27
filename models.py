@@ -16,6 +16,8 @@ class ContextUnet(nn.Module):
         self.n_feat = n_feat
         self.n_cfeat = n_cfeat
         self.h = height  # assume h == w. must be divisible by 4, so 28,24,20,16...
+        if self.h == 16:
+            self.kernel = self.h // 4
         if self.h == 32:
             self.kernel = self.h // 8
         elif self.h == 64:

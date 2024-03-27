@@ -1,3 +1,4 @@
+from data import data_loader
 from diffusion_utilities import *
 from models import ContextUnet
 
@@ -6,18 +7,18 @@ class Context:
     def __init__(self):
         self.save_dir = './weights/'
         self.model_name = "diffusion_pixelart"
-        self.context_datafile = "data/datafiles"
-        self.images_path = "data/datafiles/diffusion_pixelart_db_img_64x64.npy"
-        self.labels_path = "data/datafiles/diffusion_pixelart_db_labels_64x64.npy"
+        self.context_datafile = f"data/datafiles/{self.model_name}"
+        self.images_path = "data/datafiles/sprites_1788_16x16.npy"
+        self.labels_path = "data/datafiles/sprite_labels_nc_1788_16x16.npy"
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
         # self.context_datafile = f"{save_dir}/{model_name}"
 
         self.timesteps = 100
         self.beta1 = 1e-4
         self.beta2 = 0.02
-        self.n_feat = 128  # 64 hidden dimension feature
-        self.n_cfeat = 3115  # context vector is of size 3115
-        self.height = 64  # 16x16 image
+        self.n_feat = 64  # 64 hidden dimension feature
+        self.n_cfeat = 1000  # context vector is of size 3115
+        self.height = 16  # 16x16 image
         self.batch_size = 200
         self.n_epoch = 5
         self.lrate = 1e-3
@@ -32,7 +33,7 @@ class Context:
                          .to(self.device))
         self.optim = torch.optim.Adam(self.nn_model.parameters(), lr=self.lrate)
 
-        self.hyperparameters = [self.timesteps, self.batch_size, self.n_feat, self.n_epoch, self.height]
+        self.hyperparameters = dict()
         self.save_path = f"{self.model_name}_{*self.hyperparameters,}.pth"
 
     def update_parameters(self, parameters: dict):
@@ -40,7 +41,24 @@ class Context:
             setattr(self, key, item)
 
     def set_hyperparameters(self, parameters: dict):
-        self.hyperparameters = list(parameters.keys())
+        self.hyperparameters = parameters
 
     def __str__(self):
-        return f"Model: {self.model_name} \n With Parameters: {*self.hyperparameters,}"
+        return f"Model: {self.model_name} \n With Parameters: {*list(self.hyperparameters.values()),}"
+
+
+def generate_context(dataset, hyperparameters):
+    training_context = Context()
+
+    # Set context features
+    context_encoder = getattr(data_loader, f"{dataset}_label_encoder")
+    training_context.model_name = dataset
+    training_context.n_cfeat = context_encoder().total_words
+    # training_context.images_path = (f"data/datafiles/{training_context.model_name}"
+    #                                 f"_{training_context.height}x{training_context.height}.npy")
+    # training_context.labels_path = (f"data/datafiles/{training_context.model_name}_labels_"
+    #                                 f"{training_context.height}x{training_context.height}.npy")
+
+    # Set hyperparameters
+    training_context.update_parameters(hyperparameters)
+    return training_context

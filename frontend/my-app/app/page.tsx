@@ -62,24 +62,58 @@ const IndexPage: React.FC = () => {
     }
   };
 
+  
+  const [epochCounter, setEpochCounter] = useState<string>('000,000'); // Initialize epoch counter
+
+  // Function to update epoch counter
+  const updateEpochCounter = () => {
+    // Call your function here to update epoch counter based on your logic
+    // For now, let's just set it to a static value
+    const updatedEpochCounter = '000,000'; // Example static value
+    setEpochCounter(updatedEpochCounter);
+  };
+
+  useEffect(() => {
+    // Call function to update epoch counter
+    updateEpochCounter();
+  }, []);
+
   return (
     <div>
       
       {/* First header, 2xheight of second heder, contains text */}
       <nav className="navbar">
-            <div>
-              <span className="font-semibold text-xl tracking-tight">Unveiling Text-to-Image AI: A Playground for Creativity!</span>
-            </div>
+        <div>
+          <span className="font-semibold text-xl tracking-tight">Unveiling <span className="bold-word">Text-to-Image</span> AI: A Playground for Creativity!</span>
+        </div>
       </nav>
+
       
       {/* Second header, contains model parameter dropdowns */}
       <nav className="navbar_sub">
+        <div className="timeline_controls">
+        <button className="control-button rewind" title="rewind">
+          <i className="material-icons"></i>
+        </button>
+        <button 
+          className="control-button play-pause" 
+          id="play-pause-button" 
+          title="Run/Pause training"
+          onClick={() => { /* Implement play/pause functionality here */ }}>
+          <i id="play-pause-icon" className="material-icons"></i>
+        </button>
+        <button className="control-button fastforward" title="fastforward">
+          <i className="material-icons"></i>
+        </button>
+        </div>
+        <div>
           <div>
-            <span className="header_sub_column">Play Button</span>
+            <span className="header_sub_column">Epoch</span> 
           </div>
           <div>
-            <span className="header_sub_column">Epoch Counter</span>
+            <span className="epoch-number">{epochCounter}</span>
           </div>
+        </div>
           <div>
             <span className="header_sub_column">Something</span>
           </div>

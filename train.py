@@ -9,10 +9,14 @@ from train_utils import perturb_input
 # training with context code
 # set into train mode
 
+from datasets import load_dataset
+
+
+
 def train_model():
     nn_model.train()
 
-    dataset = CustomDataset("data/sprites_1788_16x16.npy", "data/sprite_labels_nc_1788_16x16.npy", transform, null_context=False)
+    dataset = load_dataset("poloclub/diffusiondb")
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
     optim = torch.optim.Adam(nn_model.parameters(), lr=lrate)
 

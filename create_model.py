@@ -19,7 +19,7 @@ def model_and_diffusion_defaults():
         num_head_channels=64, # Editable 64, 32, 18,
         num_heads_upsample=-1, # Editable
         attention_resolutions="32,16,8",
-        dropout=.1,
+        dropout=.1, # Editable
         text_ctx=128,
         xf_width=512, # Non Editable
         xf_layers=16, # Non Editable

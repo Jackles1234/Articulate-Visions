@@ -1,127 +1,101 @@
-from data.data_loader import diffusiondb_pixelart_label_encoder
-from models import ContextUnet
-import torch
-import matplotlib.pyplot as plt
-import numpy as np
-import torch.nn.functional as F
-from IPython.display import HTML
-from diffusion_utilities import *
+from PIL import Image
+from IPython.display import display
+import torch as th
 
-# hyperparameters
-
-# diffusion hyperparameters
-timesteps = 100
-beta1 = 1e-4
-beta2 = 0.02
-
-# network hyperparameters
-device = torch.device("cuda:0" if torch.cuda.is_available() else torch.device('cpu'))
-n_feat = 128  # 64 hidden dimension feature
-n_cfeat = 3115  # context vector is of size 3115
-height = 32 # 16x16 image
-save_dir = './weights/'
-
-# training hyperparameters
-batch_size = 200
-n_epoch = 5
-lrate = 1e-3
-
-# construct DDPM noise schedule
-b_t = (beta2 - beta1) * torch.linspace(0, 1, timesteps + 1, device=device) + beta1
-a_t = 1 - b_t
-ab_t = torch.cumsum(a_t.log(), dim=0).exp()
-ab_t[0] = 1
-
-# construct model
-nn_model = ContextUnet(in_channels=3, n_feat=n_feat, n_cfeat=n_cfeat, height=height).to(device)
-# re setup optimizer
-optim = torch.optim.Adam(nn_model.parameters(), lr=lrate)
-
-# load in pretrain model weights and set to eval mode
-# nn_model.load_state_dict(torch.load(f"{save_dir}/context_model_4.pth", map_location=device))
-# nn_model.eval()
-# print("Loaded in Context Model")
+from download import load_checkpoint
+from create_model import (
+    create_model_and_diffusion,
+    model_and_diffusion_defaults,
+    model_and_diffusion_defaults_upsampler
+)
 
 
-# helper function; removes the predicted noise (but adds some noise back in to avoid collapse)
-def denoise_add_noise(x, t, pred_noise, z=None):
-    if z is None:
-        z = torch.randn_like(x)
-    noise = b_t.sqrt()[t] * z
-    mean = (x - pred_noise * ((1 - a_t[t]) / (1 - ab_t[t]).sqrt())) / a_t[t].sqrt()
-    return mean + noise
+has_cuda = th.cuda.is_available()
+device = th.device('cpu' if not has_cuda else 'cuda')
+
+options = model_and_diffusion_defaults()
+options['use_fp16'] = has_cuda
+options['timestep_respacing'] = '100' # use 100 diffusion steps for fast sampling
+model, diffusion = create_model_and_diffusion(**options)
+model.eval()
+if has_cuda:
+    model.convert_to_fp16()
+model.to(device)
+model.load_state_dict(load_checkpoint('base', device))
+print('total base parameters', sum(x.numel() for x in model.parameters()))
+
+options_up = model_and_diffusion_defaults_upsampler()
+options_up['use_fp16'] = has_cuda
+options_up['timestep_respacing'] = 'fast27' # use 27 diffusion steps for very fast sampling
+model_up, diffusion_up = create_model_and_diffusion(**options_up)
+model_up.eval()
+if has_cuda:
+    model_up.convert_to_fp16()
+model_up.to(device)
+model_up.load_state_dict(load_checkpoint('upsample', device))
+print('total upsampler parameters', sum(x.numel() for x in model_up.parameters()))
+
+def show_images(batch: th.Tensor):
+    """ Display a batch of images inline. """
+    scaled = ((batch + 1)*127.5).round().clamp(0,255).to(th.uint8).cpu()
+    reshaped = scaled.permute(2, 0, 3, 1).reshape([batch.shape[2], -1, 3])
+    display(Image.fromarray(reshaped.numpy()))
 
 
-# sample with context using standard algorithm
-@torch.no_grad()
-def sample_ddpm_context(n_sample, context, save_rate=20):
-    # x_T ~ N(0, 1), sample initial noise
-    samples = torch.randn(n_sample, 3, height, height).to(device)
+prompt = "an oil painting of a corgi"
+batch_size = 1
+guidance_scale = 3.0
 
-    # array to keep track of generated steps for plotting
-    intermediate = []
-    for i in range(timesteps, 0, -1):
-        print(f'sampling timestep {i:3d}', end='\r')
+# Tune this parameter to control the sharpness of 256x256 images.
+# A value of 1.0 is sharper, but sometimes results in grainy artifacts.
+upsample_temp = 0.997
 
-        # reshape time tensor
-        t = torch.tensor([i / timesteps])[:, None, None, None].to(device)
+tokens = model.tokenizer.encode(prompt)
+tokens, mask = model.tokenizer.padded_tokens_and_mask(
+    tokens, options['text_ctx']
+)
 
-        # sample some random noise to inject back in. For i = 1, don't add back in noise
-        z = torch.randn_like(samples) if i > 1 else 0
+# Create the classifier-free guidance tokens (empty)
+full_batch_size = batch_size * 2
+uncond_tokens, uncond_mask = model.tokenizer.padded_tokens_and_mask(
+    [], options['text_ctx']
+)
 
-        eps = nn_model(samples, t, c=context)  # predict noise e_(x_t,t, ctx)
-        samples = denoise_add_noise(samples, i, eps, z)
-        if i % save_rate == 0 or i == timesteps or i < 8:
-            intermediate.append(samples.detach().cpu().numpy())
+# Pack the tokens together into model kwargs.
+model_kwargs = dict(
+    tokens=th.tensor(
+        [tokens] * batch_size + [uncond_tokens] * batch_size, device=device
+    ),
+    mask=th.tensor(
+        [mask] * batch_size + [uncond_mask] * batch_size,
+        dtype=th.bool,
+        device=device,
+    ),
+)
 
-    intermediate = np.stack(intermediate)
-    return samples, intermediate
+# Create a classifier-free guidance sampling function
+def model_fn(x_t, ts, **kwargs):
+    half = x_t[: len(x_t) // 2]
+    combined = th.cat([half, half], dim=0)
+    model_out = model(combined, ts, **kwargs)
+    eps, rest = model_out[:, :3], model_out[:, 3:]
+    cond_eps, uncond_eps = th.split(eps, len(eps) // 2, dim=0)
+    half_eps = uncond_eps + guidance_scale * (cond_eps - uncond_eps)
+    eps = th.cat([half_eps, half_eps], dim=0)
+    return th.cat([eps, rest], dim=1)
 
+# Sample from the base model.
+model.del_cache()
+samples = diffusion.p_sample_loop(
+    model_fn,
+    (full_batch_size, 3, options["image_size"], options["image_size"]),
+    device=device,
+    clip_denoised=True,
+    progress=True,
+    model_kwargs=model_kwargs,
+    cond_fn=None,
+)[:batch_size]
+model.del_cache()
 
-def show_images(imgs, nrow=2):
-    _, axs = plt.subplots(nrow, imgs.shape[0] // nrow, figsize=(4, 2))
-    axs = axs.flatten()
-    for img, ax in zip(imgs, axs):
-        img = (img.permute(1, 2, 0).clip(-1, 1).detach().cpu().numpy() + 1) / 2
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.imshow(img)
-    plt.show()
-
-
-# call sample_ddpm_context file,
-# visualize samples with randomly selected context
-# plt.clf()
-# # ctx = F.one_hot(torch.randint(0, 1, (1,)), n_cfeat).to(device=device).float()
-# ctx = torch.from_numpy(diffusiondb_pixelart_label_encoder().encode("apple")).float()
-# samples, intermediate = sample_ddpm_context(2, ctx)
-# show_images(samples)
-# animation_ddpm_context = plot_sample(intermediate, 32, 4, save_dir, "ani_run", None, save=False)
-# HTML(animation_ddpm_context.to_jshtml())
-
-# # user defined context
-# ctx = torch.tensor([
-#     # hero, non-hero, food, spell, side-facing
-#     [1, 0, 0, 0, 0],
-#     [1, 0, 0, 0, 0],
-#     [0, 0, 0, 0, 1],
-#     [0, 0, 0, 0, 1],
-#     [0, 1, 0, 0, 0],
-#     [0, 1, 0, 0, 0],
-#     [0, 0, 1, 0, 0],
-#     [0, 0, 1, 0, 0],
-# ]).float().to(device)
-# samples, _ = sample_ddpm_context(ctx.shape[0], ctx)
-
-# # mix of defined context
-# ctx = torch.tensor([
-#     # hero, non-hero, food, spell, side-facing
-#     [1,0,0,0,0],      #human
-#     [1,0,0.6,0,0],    
-#     [0,0,0.6,0.4,0],  
-#     [1,0,0,0,1],  
-#     [1,1,0,0,0],
-#     [1,0,0,1,0]
-# ]).float().to(device)
-# samples, _ = sample_ddpm_context(ctx.shape[0], ctx)
-# show_images(samples)
+# Show the output
+show_images(samples)

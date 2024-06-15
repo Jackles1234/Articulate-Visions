@@ -1,0 +1,236 @@
+/* global.css */
+:root {
+  --foreground: white;
+  --background-color: white;;
+  --background-color: white;;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground: white;
+    --background-start: white;
+    --background-end: white;
+  }
+}
+
+
+
+.bold-word {
+  font-size: 2.2rem; /* Adjust font size */
+  color: rgba(255, 255, 255, 1);
+
+}
+
+.navbar {
+  background-color: #183D4E;
+  padding: 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: "Roboto Thin", Arial, sans-serif;
+  font-size: 2.2rem;
+  /*box-shadow: 0 2px 4px rgba(0,0,0,0.2);*/
+}
+
+
+
+.navbar_sub {
+  background-color: #ffffff;
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: Arial;
+  /*box-shadow: 0 2px 4px rgba(0,0,0,0.2);*/
+}
+
+
+.sidebar {
+  width: 25%;
+  background-color: #eee;
+  padding: 1rem;
+  display: none; /* initially hidden */
+}
+
+.sidebar.open {
+  display: block; /* show when open */
+}
+
+.sidebar-button {
+  background-color: #3498db;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+  margin: 1rem;
+}
+
+.sidebar-form {
+  margin-top: 1rem;
+}
+
+.sidebar-input {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-button-submit {
+  background-color: #3498db;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+}
+
+.sidebar button {
+  background-color: #3498db;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.image-container {
+  position: relative;
+}
+
+.image-container img {
+  width: 100%;
+  height: auto;
+  transform: scale(0.8); /* smaller size */
+}
+
+.image-info {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: black;
+  color: white;
+  padding: 0.5rem;
+  opacity: 0.75;
+}
+
+.columns {
+  display: flex; /* Make the container a flexbox */
+  background-color: #eeeeee;
+  /*box-shadow: 0 2px 4px rgba(0,0,0,0.2);*/
+}
+
+.column {
+  padding: 1rem; /* Add some padding for content */
+  border: 1px solid #d4d4d4 ;
+  min-height: 535px;
+}
+
+.column:nth-child(1) {
+  flex: 0.4;
+}
+
+.column:nth-child(2) {
+  flex: 2;
+}
+
+.column:nth-child(3) {
+  flex: 1;
+}
+
+.header_sub_columns {
+  display: flex;
+  /*box-shadow: 0 2px 4px rgba(0,0,0,0.2);*/
+}
+
+.header_sub_column {
+  flex: 1;
+  padding: 1rem;
+  font-family: Arial;
+}
+.diffusion-step {
+  flex: 1;
+  padding: 1rem;
+  font-size: x-large;
+  font-family: Arial;
+}
+
+/* Style the main container */
+#main-part {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Style headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  line-height: 48px;
+  margin: 24px 0;
+
+}
+
+/* Style paragraphs */
+p {
+  font-family: Arial, sans-serif;
+  /*color: #666;*/
+  line-height: 1.6;
+}
+
+/* Style unordered lists */
+ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+/* Style list items */
+li {
+  font-family: Arial, sans-serif;
+  /*color: #666;*/
+  line-height: 1.6;
+}
+
+/* Additional styles for specific elements */
+
+.first_row {
+  margin-bottom: 20px;
+}
+
+.second_row {
+  margin-bottom: 20px;
+}
+
+.third_row {
+  margin-bottom: 20px;
+}
+
+.fourth_row {
+  margin-bottom: 20px;
+}
+
+.fifth_row {
+  margin-bottom: 20px;
+}
+
+.control-button {
+  /*background-color: #3f51b5; !* Adjust background color *!*/
+  color: white; /* Adjust text color */
+  border: none;
+  border-radius: 5px; /* Add rounded corners */
+  padding: 15px 15px; /* Adjust padding */
+  margin: 5px; /* Add spacing between buttons */
+  cursor: pointer; /* Indicate clickable behavior */
+  transition: background-color 0.2s ease-in-out; /* Add smooth hover effect */
+}
+
+.control-button:hover {
+  /*background-color: #283776; !* Adjust hover background color *!*/
+}
+
+
+
+
+

@@ -1,0 +1,9 @@
+filelock==3.14.0
+Flask==3.0.3
+flask_cors==4.0.1
+numpy==1.21.5
+Pillow==10.3.0
+Requests==2.32.0
+tokenizer==3.4.3
+torch==2.0.0
+tqdm==4.66.1

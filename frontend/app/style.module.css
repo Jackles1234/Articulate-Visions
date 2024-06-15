@@ -1,0 +1,85 @@
+@import "material-symbols";
+
+.columns {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    margin: 20px;
+}
+
+.column {
+    flex: 1;  /* Equal width to all columns */
+}
+
+#imageDisplayContainer {
+    flex: 3;  /* Larger flex value to increase size */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.imageDisplayContainer .centralVisual {
+    width: 100%;  /* Take full width of the container */
+    height: auto;  /* Maintain aspect ratio */
+    max-height: 600px;  /* Optional: set a max height */
+}
+
+.sidebar-form, .images {
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Adjust based on your needs */
+    gap: 10px;
+}
+
+.controlButton {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: black;
+    transition: color 0.3s;
+}
+
+.controlButton:hover {
+    color: #183d4e; /* Color changes to blue on hover */
+}
+.formContainer {
+    display: flex;
+    align-items: center; /* Aligns items vertically centered */
+    justify-content: space-around; /* Distributes space evenly between elements */
+    flex-wrap: nowrap; /* Prevents wrapping */
+    padding: 10px; /* Adds padding inside the form container */
+}
+.inputGroup {
+    display: flex;
+    flex-direction: row; /* Ensures label and input are side by side */
+    align-items: center; /* Centers items vertically */
+    margin-right: 10px; /* Adds space between input groups */
+}
+.inputField {
+    width: 60px; /* Set a specific width for all inputs */
+    padding: 8px 10px; /* Optional: Add some padding for better text visibility */
+    margin: 5px 5px 5px 0; /* Adds margin to the right of each input field */
+}
+
+.sidebarButtonSubmit {
+    padding: 10px; /* Example padding, adjust based on your design */
+    cursor: pointer;
+    background-color: #183d4e; /* Example background color */
+    color: white; /* Text color */
+    border: none;
+    border-radius: 5px; /* Optional: rounds the corners of the button */
+    width: 100px; /* Optional: Adjust width to fit alongside inputs if needed */
+    margin-left: 5px; /* Adds margin to the left of the submit button */
+}
+.PromptInputField {
+    width: 200px; /* Set a specific width for all inputs */
+    padding: 8px 10px; /* Optional: Add some padding for better text visibility */
+    margin: 5px 5px 5px 0; /* Adds margin to the right of each input field */
+}
+.aboutUL{
+    list-style-type: none;
+}
